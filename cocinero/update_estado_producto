@@ -1,0 +1,476 @@
+<?php
+session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+require_once './../config.php'; // Tu archivo de conexión a la base de datos
+
+// Seguridad: Verificar si el usuario ha iniciado sesión y tiene rol de cocinero
+if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_rol'] !== 'cocinero') {
+    // Si no es una solicitud AJAX, redirige. Si es AJAX, devuelve un error.
+    if (empty($_SERVER['HTTP_X_REQUESTED_WITH'])) { // Comprobación básica para requests no-AJAX
+        header("Location: ./../index.php");
+    } else {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Acceso no autorizado.']);
+    }
+    exit();
+}
+
+// --- CAMBIO IMPORTANTE: LÓGICA DE ACTUALIZACIÓN DE ESTADO ---
+// Esta sección ahora está preparada para responder a solicitudes AJAX con JSON.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_estado_producto') {
+    $pedido_producto_id = intval($_POST['pedido_producto_id']);
+    $nuevo_estado_item = $_POST['estado']; // Renombrado para claridad
+
+    $response = ['success' => false, 'message' => 'Error desconocido.'];
+
+    $estados_validos_item = ['pendiente', 'en_preparacion', 'listo', 'cancelado'];
+    if (!in_array($nuevo_estado_item, $estados_validos_item)) {
+        $response['message'] = 'Estado de producto no válido.';
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($conn->connect_error) {
+        $response['message'] = "Error de conexión a la base de datos: " . $conn->connect_error;
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
+    $conn->begin_transaction(); // Inicia una transacción para asegurar la consistencia
+    try {
+        // 1. Obtener el pedido_id del item actual
+        $stmt_get_pedido_id = $conn->prepare("SELECT pedido_id FROM pedido_productos WHERE id = ?");
+        if (!$stmt_get_pedido_id) {
+            throw new Exception("Error al preparar la consulta para obtener pedido_id: " . $conn->error);
+        }
+        $stmt_get_pedido_id->bind_param("i", $pedido_producto_id);
+        $stmt_get_pedido_id->execute();
+        $result_pedido_id = $stmt_get_pedido_id->get_result();
+        if ($row = $result_pedido_id->fetch_assoc()) {
+            $current_pedido_id = $row['pedido_id'];
+        } else {
+            throw new Exception("Pedido producto no encontrado.");
+        }
+        $stmt_get_pedido_id->close();
+
+        // 2. Actualizar el estado del ítem específico
+        $stmt_update_item = $conn->prepare("UPDATE pedido_productos SET estado = ? WHERE id = ?");
+        if (!$stmt_update_item) {
+            throw new Exception("Error al preparar la consulta para actualizar ítem: " . $conn->error);
+        }
+        $stmt_update_item->bind_param("si", $nuevo_estado_item, $pedido_producto_id);
+        $stmt_update_item->execute();
+        if ($stmt_update_item->affected_rows === 0) {
+             throw new Exception("No se pudo actualizar el estado del producto o el estado ya es el mismo.");
+        }
+        $stmt_update_item->close();
+
+        // 3. Determinar el nuevo estado del pedido principal
+        // Consultar los estados de TODOS los productos de este pedido
+        $stmt_check_items = $conn->prepare("SELECT estado FROM pedido_productos WHERE pedido_id = ?");
+        if (!$stmt_check_items) {
+            throw new Exception("Error al preparar la consulta para verificar ítems del pedido: " . $conn->error);
+        }
+        $stmt_check_items->bind_param("i", $current_pedido_id);
+        $stmt_check_items->execute();
+        $result_items = $stmt_check_items->get_result();
+
+        $todos_listos = true;
+        $alguno_en_preparacion = false;
+        $alguno_pendiente = false;
+        $alguno_cancelado = false;
+
+        while ($item_estado_row = $result_items->fetch_assoc()) {
+            $estado_item = $item_estado_row['estado'];
+            if ($estado_item !== 'listo') {
+                $todos_listos = false;
+            }
+            if ($estado_item === 'en_preparacion') {
+                $alguno_en_preparacion = true;
+            }
+            if ($estado_item === 'pendiente') {
+                $alguno_pendiente = true;
+            }
+            if ($estado_item === 'cancelado') {
+                $alguno_cancelado = true;
+            }
+        }
+        $stmt_check_items->close();
+
+        $nuevo_estado_pedido = 'pendiente'; // Estado por defecto
+
+        if ($todos_listos) {
+            $nuevo_estado_pedido = 'listo';
+        } elseif ($alguno_en_preparacion) {
+            $nuevo_estado_pedido = 'en_preparacion';
+        } elseif ($alguno_cancelado) {
+            // Si hay al menos un artículo cancelado y no hay otros en preparación o listos,
+            // podríamos considerar el pedido principal como cancelado o mixto.
+            // Para simplicidad, si hay cancelados y no hay en preparación/listos, lo ponemos en cancelado
+            // ajusta esta lógica según tu negocio.
+            $nuevo_estado_pedido = 'cancelado'; 
+        }
+        // Si todo está pendiente, se mantiene en 'pendiente'
+
+        // 4. Actualizar el estado del pedido principal
+        $stmt_update_pedido = $conn->prepare("UPDATE pedidos SET estado = ? WHERE id = ?");
+        if (!$stmt_update_pedido) {
+            throw new Exception("Error al preparar la consulta para actualizar pedido principal: " . $conn->error);
+        }
+        $stmt_update_pedido->bind_param("si", $nuevo_estado_pedido, $current_pedido_id);
+        $stmt_update_pedido->execute();
+        $stmt_update_pedido->close();
+
+        $conn->commit(); // Confirma la transacción si todo fue bien
+        $response = ['success' => true, 'message' => 'Estado del producto y pedido actualizado con éxito.'];
+
+    } catch (Exception $e) {
+        $conn->rollback(); // Deshace los cambios si algo falla
+        $response = ['success' => false, 'message' => 'Error en la operación: ' . $e->getMessage()];
+        error_log("Error en cocinero_dashboard (update_estado_producto): " . $e->getMessage()); // Log para depuración en el servidor
+    } finally {
+        $conn->close(); // Cierra la conexión en cualquier caso
+    }
+
+    // Devuelve una respuesta JSON y termina el script.
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Lógica para cerrar sesión (si no es una solicitud de actualización)
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: ./../index.php");
+    exit();
+}
+
+// NOTA: La conexión a la base de datos para la página principal
+//       (fuera del bloque POST) ya no es necesaria aquí, porque
+//       los datos son cargados por JavaScript vía 'api_get_pedidos_cocinero.php'.
+//       Si tuvieras alguna otra consulta PHP directa para el HTML inicial,
+//       la conexión debería manejarse de forma similar a como se hizo en el bloque POST.
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Cocinero | MaxiPizza</title>
+    <link rel="stylesheet" href="./../css/style.css">
+    <style>
+        /* Agrega o asegura que estos estilos estén en tu style.css */
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, p {
+            text-align: center;
+            color: #333;
+        }
+        .logout-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+        #status-message-container {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 2em; /* Para evitar saltos al aparecer/desaparecer mensajes */
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .no-pedidos {
+            text-align: center;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            margin-top: 20px;
+            color: #666;
+        }
+        .pedido-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+        .pedido-header {
+            background-color: #f0f0f0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .pedido-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+        .pedido-info {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .pedido-info p {
+            margin: 5px 0;
+            text-align: left;
+            color: #555;
+        }
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .item-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px dashed #eee;
+        }
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+        .item-details {
+            flex-grow: 1;
+        }
+        .item-details strong {
+            display: block;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .item-details span {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .item-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s ease;
+        }
+        .item-actions button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .item-actions button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .btn-preparing { background-color: #ffc107; color: #333;} /* Amarillo */
+        .btn-preparing:hover:not(:disabled) { background-color: #e0a800; }
+        .btn-ready { background-color: #28a745; } /* Verde */
+        .btn-ready:hover:not(:disabled) { background-color: #218838; }
+        .btn-reset { background-color: #6c757d; } /* Gris */
+        .btn-reset:hover:not(:disabled) { background-color: #5a6268; }
+
+        /* Estilos para el estado del pedido (asegúrate de que estén en tu CSS) */
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+            text-transform: capitalize;
+            color: white;
+            background-color: #6c757d; /* Default gray */
+        }
+        .status.pendiente { background-color: #007bff; } /* Azul */
+        .status.en_preparacion { background-color: #ffc107; color: #333; } /* Amarillo */
+        .status.listo { background-color: #28a745; } /* Verde */
+        .status.cancelado { background-color: #dc3545; } /* Rojo */
+        .status.entregado { background-color: #6f42c1; } /* Púrpura (si lo usas) */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Panel de Cocinero</h1>
+        <p>Bienvenido, Cocinero <?php echo htmlspecialchars($_SESSION['usuario_email']); ?>. Aquí puedes ver y gestionar los pedidos.</p>
+
+        <div id="status-message-container"></div>
+
+        <div id="pedidos-container">
+            </div>
+
+        <a href="?logout=true" class="logout-button">Cerrar Sesión</a>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('pedidos-container');
+    const messageContainer = document.getElementById('status-message-container');
+
+    // Función para renderizar los pedidos
+    function renderPedidos(pedidos) {
+        if (pedidos.length === 0) {
+            container.innerHTML = `<div class="no-pedidos"><p>No hay pedidos pendientes o en preparación.</p></div>`;
+            return;
+        }
+
+        let html = '';
+        pedidos.forEach(pedido => {
+            const estadoPrincipalText = pedido.estado_pedido_principal.replace('_', ' ');
+            html += `
+            <div class="pedido-card">
+                <div class="pedido-header">
+                    <h2>Pedido #${pedido.pedido_id}</h2>
+                    <span class="status ${pedido.estado_pedido_principal}">${estadoPrincipalText}</span>
+                </div>
+                <div class="pedido-info">
+                    <p><strong>Cliente:</strong> ${pedido.cliente_info}</p>
+                    <p><strong>Fecha:</strong> ${pedido.fecha}</p>
+                </div>
+                <ul class="item-list">`;
+
+            pedido.items.forEach(item => {
+                const estadoIndividualText = item.estado_producto_individual.replace('_', ' ');
+                // Un ítem se considera "terminado" si está listo, entregado o cancelado
+                const isItemDone = ['listo', 'entregado', 'cancelado'].includes(item.estado_producto_individual);
+
+                html += `
+                    <li>
+                        <div class="item-details">
+                            <strong>${item.producto_nombre}</strong> (x${item.cantidad})<br>
+                            <span>Estado: <span class="status ${item.estado_producto_individual}">${estadoIndividualText}</span></span>
+                        </div>
+                        <div class="item-actions">
+                            <button type="button" class="btn-preparing update-status-btn" data-id="${item.pedido_producto_id}" data-estado="en_preparacion" ${isItemDone ? 'disabled' : ''}>En Preparación</button>
+                            <button type="button" class="btn-ready update-status-btn" data-id="${item.pedido_producto_id}" data-estado="listo" ${isItemDone ? 'disabled' : ''}>Marcar Listo</button>
+                            <button type="button" class="btn-reset update-status-btn" data-id="${item.pedido_producto_id}" data-estado="pendiente" ${isItemDone ? 'disabled' : ''}>Restablecer</button>
+                        </div>
+                    </li>`;
+            });
+            html += `</ul></div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Función para obtener los datos desde el API
+    async function fetchPedidos() {
+        try {
+            // Asegúrate de que 'api_get_pedidos_cocinero.php' existe y devuelve el JSON esperado.
+            const response = await fetch('api_get_pedidos_cocinero.php');
+            if (!response.ok) {
+                // Maneja respuestas HTTP no exitosas (ej. 403 Forbidden, 404 Not Found)
+                if (response.status === 403) {
+                     // Si la sesión del cocinero ha expirado o no está autorizado
+                    showStatusMessage('Sesión expirada o no autorizado. Redirigiendo...', false);
+                    setTimeout(() => window.location.href = './../index.php', 2000); // Redirige al login
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const pedidos = await response.json();
+            renderPedidos(pedidos);
+        } catch (error) {
+            console.error('Error al cargar la lista de pedidos:', error);
+            showStatusMessage('No se pudo cargar la lista de pedidos. Intente recargar la página.', false);
+        }
+    }
+
+    // Función para mostrar mensajes de estado
+    function showStatusMessage(message, isSuccess) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+        messageDiv.textContent = message;
+        messageContainer.innerHTML = ''; // Limpiar mensajes anteriores
+        messageContainer.appendChild(messageDiv);
+        setTimeout(() => messageDiv.remove(), 4000); // El mensaje desaparece después de 4 segundos
+    }
+
+    // --- NUEVO: Manejador de eventos para los botones de estado ---
+    container.addEventListener('click', async function(event) {
+        // Solo reacciona si se hizo clic en un botón para actualizar estado
+        if (!event.target.classList.contains('update-status-btn')) {
+            return;
+        }
+
+        const button = event.target;
+        const pedidoProductoId = button.dataset.id;
+        const nuevoEstado = button.dataset.estado;
+
+        // Deshabilitar el botón y sus hermanos para evitar clics múltiples
+        const buttonsInSameRow = button.closest('.item-actions').querySelectorAll('button');
+        buttonsInSameRow.forEach(btn => btn.disabled = true);
+
+
+        // Prepara los datos para enviar
+        const formData = new FormData();
+        formData.append('action', 'update_estado_producto');
+        formData.append('pedido_producto_id', pedidoProductoId);
+        formData.append('estado', nuevoEstado);
+
+        try {
+            const response = await fetch('cocinero_dashboard.php', { // Apunta al mismo script PHP
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            showStatusMessage(result.message, result.success);
+
+            if (result.success) {
+                // Si el cambio fue exitoso, volvemos a cargar la lista de pedidos
+                // para reflejar todos los cambios (incluido el estado del pedido principal).
+                fetchPedidos();
+            } else {
+                // Si falló, reactiva los botones
+                buttonsInSameRow.forEach(btn => btn.disabled = false);
+            }
+        } catch (error) {
+            console.error('Error al cambiar estado:', error);
+            showStatusMessage('Error de conexión al intentar cambiar el estado.', false);
+            buttonsInSameRow.forEach(btn => btn.disabled = false); // Reactiva los botones si hay un error
+        }
+    });
+
+    // Carga inicial y actualización periódica
+    fetchPedidos();
+    // Actualiza los pedidos cada 5 segundos
+    setInterval(fetchPedidos, 5000);
+});
+</script>
+
+</body>
+</html>

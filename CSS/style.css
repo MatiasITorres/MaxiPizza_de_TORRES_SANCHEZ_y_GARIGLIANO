@@ -1,0 +1,89 @@
+/* Asegúrate de que este CSS esté en tu archivo principal o después del CSS anterior */
+
+/* Ajustes adicionales para la tabla (si no los tienes ya con los estilos anteriores) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    background-color: #fff;
+    border-radius: 10px; /* Bordes redondeados */
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* Sombra más suave */
+}
+th, td {
+    padding: 18px; /* Más padding para celdas */
+    text-align: left;
+    border-bottom: 1px solid #ebebeb; /* Borde más sutil */
+    vertical-align: middle; /* Centra el contenido verticalmente */
+}
+th {
+    background-color: #f9f9f9; /* Fondo muy claro para encabezados */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #666;
+    font-size: 0.95em;
+}
+tr:nth-child(even) { background-color: #fefefe; } /* Fondo casi blanco para filas pares */
+tr:hover { background-color: #f5f5f5; } /* Resaltado suave al pasar el ratón */
+
+/* Estilos para los botones de acción dentro de la tabla (EDITAR y ELIMINAR) */
+.action-buttons {
+    display: flex; /* Para que los botones estén uno al lado del otro */
+    gap: 8px; /* Espacio entre los botones */
+    justify-content: flex-end; /* Alinea los botones a la derecha si la celda es ancha */
+}
+
+/* Aplica los estilos de botón existentes, pero puedes refinar para que se vean bien pequeños */
+.action-buttons .btn { /* O solo 'button' si son elementos button directamente */
+    padding: 8px 12px; /* Reducir el padding para que no sean demasiado grandes */
+    font-size: 0.9em; /* Reducir el tamaño de la fuente */
+    border-radius: 6px; /* Bordes ligeramente menos redondeados para botones pequeños */
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra más suave para botones pequeños */
+}
+
+/* Re-definiendo o asegurando los colores para los botones de la tabla */
+.action-buttons .btn.edit {
+    background-color: #f39c12; /* Amarillo-naranja de la paleta de pizzería */
+    color: white;
+}
+.action-buttons .btn.edit:hover {
+    background-color: #e67e22; /* Naranja más oscuro al pasar el ratón */
+    transform: translateY(-1px); /* Menos desplazamiento para botones pequeños */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.action-buttons .btn.delete {
+    background-color: #c0392b; /* Rojo pizza para eliminar */
+    color: white;
+}
+.action-buttons .btn.delete:hover {
+    background-color: #a93226; /* Rojo más oscuro al pasar el ratón */
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* Estilo para el scrollbar (si es un problema visible en la imagen) */
+/* Esto puede variar ligeramente entre navegadores, es para Chrome/Edge/Safari */
+::-webkit-scrollbar {
+    width: 12px; /* Ancho del scrollbar vertical */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color del fondo del track del scrollbar */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e67e22; /* Color de la barra de scroll (naranja de la paleta) */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #d35400; /* Color al pasar el ratón por la barra de scroll */
+}
+
+/* Estilo para Firefox */
+html {
+    scrollbar-color: #e67e22 #f1f1f1; /* thumb y track */
+}

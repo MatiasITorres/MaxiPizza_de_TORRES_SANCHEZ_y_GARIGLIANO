@@ -1,0 +1,928 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ========================================================= */
+/* VARIABLES Y RESET (Base del diseño Lezato)               */
+/* ========================================================= */
+:root {
+    --primary-color: #f75c4e; /* Lezato Red */
+    --secondary-color: #6c757d; /* Gris para texto/iconos secundarios */
+    --text-color: #343a40; /* Texto principal oscuro */
+    --light-text: #adb5bd; /* Texto muy claro/footer */
+    --background-color: #f8f9fa; /* Fondo general claro */
+    --card-background: #ffffff;
+    --border-color: #e9ecef;
+    --sidebar-bg: #ffffff;
+    --success-color: #28a745;
+    --error-color: #e74c3c;
+
+    /* Estados de pedido (Ajustado al nuevo diseño) */
+    --status-pendiente: #f39c12; /* Naranja */
+    --status-en_preparacion: #3498db; /* Azul */
+    --status-listo: #27ae60; /* Verde */
+    --status-entregado: #7f8c8d; /* Gris */
+    --status-cancelado: #e74c3c; /* Rojo */
+}
+
+/* ========================================================= */
+/* DARK MODE */
+/* ========================================================= */
+.dark-mode {
+    --text-color: #f8f9fa;
+    --background-color: #212529;
+    --card-background: #343a40;
+    --border-color: #495057;
+    --sidebar-bg: #343a40;
+    --secondary-color: #adb5bd;
+    --light-text: #6c757d;
+}
+
+/* ========================================================= */
+/* BLANCO Y NEGRO (GRYSCALE MODE) 🔄 NUEVO */
+/* ========================================================= */
+.grayscale-mode {
+    /* Filtro de escala de grises aplicado a todo el cuerpo para imágenes, etc. */
+    filter: grayscale(100%);
+    
+    /* Variables redefinidas a grises o blancos/negros puros */
+    --primary-color: #6c757d; /* Usamos un gris neutro como primario */
+    --secondary-color: #495057;
+    --text-color: #343a40; /* Texto oscuro */
+    --light-text: #adb5bd; 
+    --background-color: #f8f9fa; /* Fondo muy claro */
+    --card-background: #ffffff;
+    --border-color: #e9ecef;
+    --sidebar-bg: #ffffff;
+    --success-color: #343a40; /* Éxito en negro */
+    --error-color: #7f8c8d; /* Error en gris oscuro */
+
+    /* Estados de pedido (Adaptados a grises) */
+    --status-pendiente: #495057;
+    --status-en_preparacion: #6c757d;
+    --status-listo: #343a40; 
+    --status-entregado: #adb5bd;
+    --status-cancelado: #7f8c8d; 
+}
+/* Aseguramos que el filtro de escala de grises esté en el body */
+.grayscale-mode body {
+    filter: grayscale(100%);
+}
+
+/* ========================================================= */
+/* BASE / TIPOGRAFÍA */
+/* ========================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    /* Agregar filtro y transición para el modo B/N */
+    transition: background-color 0.3s, color 0.3s, filter 0.5s ease; 
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    /* Ajuste para el hover: se necesitará un gris más oscuro si el primary-color es gris */
+    color: var(--primary-color);
+    opacity: 0.8; 
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+/* ========================================================= */
+/* LAYOUT PRINCIPAL (SOLO ADMIN) */
+/* ========================================================= */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content-wrapper {
+    flex-grow: 1;
+    padding: 30px;
+}
+
+/* ========================================================= */
+/* SIDEBAR (HEADER.PHP modificado) */
+/* ========================================================= */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.sidebar-header img {
+    max-width: 80%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-item a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.3s, color 0.3s;
+    border-left: 5px solid transparent;
+}
+
+.nav-item a i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+    width: 20px;
+}
+
+.nav-item a:hover {
+    /* Ajuste de hover para usar el primary-color */
+    background-color: color-mix(in srgb, var(--primary-color) 10%, transparent); /* Ligero hover del color primario */
+    color: var(--primary-color);
+}
+
+.nav-item.active a {
+    /* Ajuste para usar primary-color */
+    background-color: color-mix(in srgb, var(--primary-color) 20%, transparent);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+}
+
+.sidebar-footer {
+    padding: 20px;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--light-text);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Dark Mode Sidebar */
+.dark-mode .sidebar {
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+}
+
+.dark-mode .nav-item a:hover {
+    background-color: rgba(247, 92, 78, 0.3);
+}
+
+/* Grayscale Mode Sidebar */
+/* El modo B/N ya se maneja bien con las variables, solo ajustamos el box-shadow */
+.grayscale-mode .sidebar {
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+}
+
+/* ========================================================= */
+/* ELEMENTOS COMUNES */
+/* ========================================================= */
+
+/* Alertas/Mensajes */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+.alert-error {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+.dark-mode .alert-success {
+    color: #d4edda;
+    background-color: #155724;
+    border-color: #c3e6cb;
+}
+.dark-mode .alert-error {
+    color: #f8d7da;
+    background-color: #721c24;
+    border-color: #f5c6cb;
+}
+/* NUEVO: Grayscale Mode Alerts */
+.grayscale-mode .alert-success {
+    color: var(--text-color); /* Texto oscuro */
+    background-color: #e9ecef; /* Fondo gris claro */
+    border-color: #ced4da;
+}
+.grayscale-mode .alert-error {
+    color: var(--text-color); /* Texto oscuro */
+    background-color: #ced4da; /* Fondo gris medio */
+    border-color: #adb5bd;
+}
+
+/* Botones */
+.btn {
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s, opacity 0.3s;
+    border: none;
+    margin-right: 10px;
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    /* Ahora usa color-mix para funcionar con cualquier color primario (incluido el gris) */
+    background-color: color-mix(in srgb, var(--primary-color) 80%, black);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    /* Ahora usa color-mix para funcionar con cualquier color de error (incluido el gris) */
+    background-color: color-mix(in srgb, var(--error-color) 80%, black);
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+}
+
+.btn.submit-button {
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Formulario/Input */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-background);
+    color: var(--text-color);
+    transition: border-color 0.3s;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-group-inline select {
+    max-width: 150px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.card h3 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.dark-mode .card {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* ========================================================= */
+/* DATATABLES (Admin) */
+/* ========================================================= */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 15px;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: #fcfcfc;
+}
+.dark-mode .data-table tbody tr:nth-child(even) {
+    background-color: #3b4249;
+}
+/* NUEVO: Grayscale Mode Datatable */
+.grayscale-mode .data-table tbody tr:nth-child(even) {
+    background-color: #f0f0f0;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table .action-buttons {
+    display: flex;
+    gap: 5px;
+}
+.data-table .action-buttons .btn {
+    margin-right: 0;
+}
+
+/* Estilos de Estado */
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: 700;
+    display: inline-block;
+    text-transform: capitalize;
+}
+/* Se mantienen los colores originales como fallback si el modo B/N no aplica */
+.estado-pendiente { background-color: #fdf3e0; color: var(--status-pendiente); }
+.estado-en_preparacion { background-color: #eaf4fd; color: var(--status-en_preparacion); }
+.estado-listo { background-color: #e6f9e9; color: var(--status-listo); }
+.estado-entregado { background-color: #f2f2f2; color: var(--status-entregado); }
+.estado-cancelado { background-color: #feebe8; color: var(--status-cancelado); }
+
+/* Dark Mode Status */
+.dark-mode .estado-pendiente { background-color: #8c5d1e; color: #ffdc91; }
+.dark-mode .estado-en_preparacion { background-color: #1a4f78; color: #a0cffc; }
+.dark-mode .estado-listo { background-color: #176e33; color: #9be9a7; }
+.dark-mode .estado-entregado { background-color: #555c63; color: #c0c6cc; }
+.dark-mode .estado-cancelado { background-color: #903027; color: #ffc4be; }
+
+/* NUEVO: Grayscale Mode Status (Asegura fondos y colores de texto en grises) */
+.grayscale-mode .estado-pendiente { background-color: #e9ecef; color: var(--status-pendiente); }
+.grayscale-mode .estado-en_preparacion { background-color: #ced4da; color: var(--status-en_preparacion); }
+.grayscale-mode .estado-listo { background-color: #adb5bd; color: var(--status-listo); }
+.grayscale-mode .estado-entregado { background-color: #6c757d; color: var(--status-entregado); }
+.grayscale-mode .estado-cancelado { background-color: #495057; color: var(--status-cancelado); }
+
+/* ========================================================= */
+/* DASHBOARD (Overview) */
+/* ========================================================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-left: 5px solid; /* Usado para color de estado */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.stat-title {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-card .icon-left {
+    font-size: 2.5rem;
+    margin-right: 15px;
+}
+
+.stat-card .icon-right {
+    font-size: 2rem;
+    color: var(--border-color);
+}
+
+/* Colores Específicos para las Tarjetas */
+
+/* Pedidos Totales */
+.orders-total-card {
+    border-left-color: #5bc0de; /* Azul Claro */
+}
+.orders-total-card .stat-value, .orders-total-card .icon-left {
+    color: #5bc0de;
+}
+
+/* Pedidos Pendientes */
+.orders-pending-card {
+    border-left-color: var(--status-pendiente); /* Naranja */
+}
+.orders-pending-card .stat-value, .orders-pending-card .icon-left {
+    color: var(--status-pendiente);
+}
+
+/* Ganancias */
+.sales-card {
+    border-left-color: var(--success-color); /* Verde */
+}
+.sales-card .stat-value, .sales-card .icon-left {
+    color: var(--success-color);
+}
+.sales-card .card-link {
+    color: var(--success-color);
+}
+
+/* Usuarios */
+.users-card {
+    border-left-color: #9b59b6; /* Púrpura */
+}
+.users-card .stat-value, .users-card .icon-left {
+    color: #9b59b6;
+}
+.users-card .card-link {
+    color: #9b59b6;
+}
+
+/* NUEVO: Ajuste de colores específicos para Grayscale Mode */
+.grayscale-mode .orders-total-card {
+    border-left-color: #7f8c8d; /* Gris */
+}
+.grayscale-mode .orders-total-card .stat-value, .grayscale-mode .orders-total-card .icon-left {
+    color: #7f8c8d;
+}
+.grayscale-mode .users-card {
+    border-left-color: #343a40; /* Gris Oscuro */
+}
+.grayscale-mode .users-card .stat-value, .grayscale-mode .users-card .icon-left {
+    color: #343a40;
+}
+
+
+/* ========================================================= */
+/* UTILITIES & RESPONSIVE (Admin) */
+/* ========================================================= */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.m-t-20 { margin-top: 20px; }
+
+@media (max-width: 992px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+        /* Estilos para el sidebar colapsable en móvil si se implementa */
+    }
+    .sidebar-header {
+        border-bottom: none;
+    }
+    .sidebar-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .nav-item {
+        flex-shrink: 0;
+    }
+    .nav-item a {
+        padding: 10px 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    .nav-item.active a {
+        border-left-color: transparent;
+        border-bottom-color: var(--primary-color);
+    }
+    .sidebar-footer {
+        display: none;
+    }
+    .main-content-wrapper {
+        padding: 20px 10px;
+    }
+}
+
+/* Responsive para Tablas (Admin - Solo para pantallas muy pequeñas) */
+@media (max-width: 768px) {
+    .data-table, .data-table thead, .data-table tbody, .data-table th, .data-table td, .data-table tr { 
+        display: block; 
+    }
+    
+    .data-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .data-table tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 10px;
+        display: block;
+        border-radius: 8px;
+    }
+    
+    .data-table td {
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+        padding-left: 50%; 
+        text-align: right;
+    }
+    
+    .data-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 15px;
+        font-weight: bold;
+        text-align: left;
+        color: var(--primary-color);
+    }
+    .data-table td:last-child {
+        border-bottom: 0;
+    }
+}
+
+/* ========================================================= */
+/* ESTILOS DE CONFIGURACIÓN */
+/* ========================================================= */
+.config-group {
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+.config-group h4 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+/* Toggle Switch Styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--secondary-color);
+  transition: .4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--success-color);
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--success-color);
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.config-toggle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+.config-toggle-item:last-child {
+    border-bottom: none;
+}
+.toggle-info {
+    font-weight: 500;
+}
+.toggle-status {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    margin-left: 10px;
+}
+
+/* ========================================================= */
+/* KIOSCO / CLIENTE (ESTILOS ADICIONALES Y CAROUSEL)         */
+/* ========================================================= */
+
+/* Contenedor de Carrusel/Tabs - Fondo Verde Oscuro */
+.category-tabs {
+    display: flex;
+    overflow-x: auto; /* Habilita el scroll horizontal si el contenido excede el ancho */
+    -webkit-overflow-scrolling: touch; /* Mejora el scroll en iOS */
+    white-space: nowrap; /* Evita que los botones salten de línea */
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #004d40; /* 🟢 VERDE OSCURO */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+/* NUEVO: Grayscale Mode Category Tabs */
+.grayscale-mode .category-tabs {
+    background-color: #343a40; /* Negro para el fondo de la barra */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Ocultar barra de scroll en navegadores WebKit */
+.category-tabs::-webkit-scrollbar {
+    display: none; 
+}
+
+.category-tabs .tab-button {
+    flex-shrink: 0; /* IMPEDIR que los botones se encojan */
+    background-color: #00796b; /* Un tono de verde un poco más claro para los botones inactivos */
+    color: white;
+    margin-right: 10px; /* Espacio entre botones */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+.category-tabs .tab-button:last-child {
+    margin-right: 0;
+}
+
+.category-tabs .tab-button.active {
+    background-color: var(--primary-color); /* Usar el color principal para el botón activo */
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.category-tabs .tab-button:hover:not(.active) {
+    background-color: #00897b;
+}
+
+/* NUEVO: Grayscale Mode Tab Buttons */
+.grayscale-mode .category-tabs .tab-button {
+    background-color: #495057; /* Gris oscuro para inactivos */
+}
+.grayscale-mode .category-tabs .tab-button:hover:not(.active) {
+    background-color: #5a6268;
+}
+
+.product-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    text-align: center;
+}
+.product-image {
+    width: 100%; 
+    max-width: 200px; 
+    height: 150px;     
+    object-fit: cover; 
+    border-radius: 8px; 
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ========================================================= */
+/* LOGIN PAGE STYLES (index.php) 🔄 NUEVO */
+/* ========================================================= */
+
+/* Body/Layout para centrar el formulario */
+body {
+    /* Mantenemos las propiedades base de Poppins y temas */
+    /* Añadimos las propiedades de layout para centrar el login */
+    display: flex; /* */
+    justify-content: center; /* */
+    align-items: center; /* */
+    min-height: 100vh; /* */
+    margin: 0; /* */
+    /* El resto de propiedades de tema y tipografía ya están arriba */
+}
+
+.login-container {
+    background-color: var(--card-background); /* Fondo de la tarjeta */
+    padding: 30px; /* */
+    border-radius: 8px; /* */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    width: 100%; /* */
+    max-width: 350px; /* */
+    text-align: center; /* */
+    position: relative; /* Para posicionar el toggle B/N */
+}
+
+.login-container img {
+    width: 150px; /* Ajusta el tamaño del logo */
+    margin-bottom: 20px; /* */
+}
+
+h2 {
+    color: var(--text-color); /* */
+    margin-bottom: 25px; /* */
+    font-weight: 600; /* */
+}
+
+/* Formulario */
+.form-group {
+    margin-bottom: 15px; /* */
+    text-align: left; /* */
+}
+
+label {
+    display: block; /* */
+    margin-bottom: 5px; /* */
+    color: var(--text-color); /* */
+    font-weight: 500; /* */
+}
+
+.login-container input {
+    width: calc(100% - 20px); /* Ajuste basado en el padding */
+    padding: 10px; /* */
+    border: 1px solid var(--border-color); /* */
+    border-radius: 4px; /* */
+    font-size: 1em; /* */
+    /* Usa variables del formulario general para color y fondo */
+    background-color: var(--card-background);
+    color: var(--text-color);
+}
+
+/* Botón de Login (Estilo Primary) */
+.login-container button {
+    width: 100%; /* */
+    padding: 10px; /* */
+    background-color: var(--primary-color); /* Usar variable CSS */
+    color: white; /* */
+    border: none; /* */
+    border-radius: 4px; /* */
+    font-size: 1.1em; /* */
+    cursor: pointer; /* */
+    transition: background-color 0.3s ease; /* */
+    margin-top: 15px; /* Separación del input */
+}
+.login-container button:hover {
+    /* Usamos color-mix para que funcione con primary-color gris en B/N */
+    background-color: color-mix(in srgb, var(--primary-color) 80%, black);
+}
+
+/* Mensaje de Error */
+.error-message {
+    color: var(--error-color); /* Rojo de error */
+    background-color: #f8d7da; /* Fondo claro de alerta */
+    border: 1px solid #f5c6cb; /* */
+    padding: 10px; /* */
+    border-radius: 4px; /* */
+    margin-bottom: 20px; /* */
+}
+
+/* Dark Mode Error Message */
+.dark-mode .error-message {
+    color: #f8d7da; /* Texto claro */
+    background-color: #721c24; /* Fondo oscuro */
+    border-color: #903027;
+}
+
+/* Grayscale Mode Error Message */
+.grayscale-mode .error-message {
+    color: var(--text-color); /* Texto oscuro */
+    background-color: #ced4da; /* Fondo gris medio */
+    border-color: #adb5bd;
+}
+
+/* Toggle de Blanco y Negro */
+.grayscale-toggle {
+    position: absolute; /* */
+    top: 10px; /* */
+    right: 10px; /* */
+    display: flex; /* */
+    align-items: center; /* */
+    font-size: 0.8em; /* */
+    color: var(--secondary-color); /* */
+}
+
+/* Estilo simple para el checkbox/switch */
+.grayscale-toggle input[type="checkbox"] {
+    width: 15px; /* */
+    height: 15px; /* */
+    margin-left: 5px; /* */
+    cursor: pointer; /* */
+}

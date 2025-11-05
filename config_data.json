@@ -1,0 +1,10 @@
+{
+    "company_name": "Sistema de Gesti\u00f3n",
+    "logo_path": "./../img/default_logo.png",
+    "contact_email": "contacto@ejemplo.com",
+    "theme_mode": "dark",
+    "mercadopago_active": "0",
+    "other_payment_options": "",
+    "transfer_alias": "",
+    "transfer_cbu_cvu": ""
+}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxiPizza</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            width: 90%; /* Adjust as needed */
+            max-width: 1200px; /* Max width for the entire layout */
+            background-color: #f5f5dc; /* Light yellow background as in the image */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px; /* Space from the top */
+            margin-bottom: 20px;
+            border-radius: 8px; /* Slightly rounded corners */
+            overflow: hidden; /* Ensures child elements respect border-radius */
+        }
+
+        .form-section {
+            flex: 0 0 50%; /* Takes up roughly half the width */
+            padding: 30px;
+            box-sizing: border-box;
+            background-color: #fdfae7; /* Slightly lighter yellow for the form area */
+        }
+
+        .empty-right-section {
+            flex: 1; /* Takes up the remaining space */
+            background-color: #333; /* Dark gray/black as in the image */
+        }
+
+        h1 {
+            color: #e44d26; /* Orange color for MaxiPizza */
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e44d26; /* Orange line under section titles */
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group input[type="number"] {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="tel"]:focus,
+        .form-group input[type="number"]:focus {
+            border-color: #e44d26;
+            outline: none;
+            box-shadow: 0 0 5px rgba(228, 77, 38, 0.5);
+        }
+
+        .add-button {
+            width: 30px; /* Size of the plus icon */
+            height: 30px;
+            background-color: #e44d26; /* Orange background for the plus button */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .add-button img {
+            width: 20px; /* Size of the plus icon image */
+            height: 20px;
+            filter: invert(100%); /* Make the plus icon white */
+        }
+
+        .inline-group {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Space between input and price info */
+        }
+
+        .inline-group input[type="number"] {
+            width: 80px; /* Specific width for number input */
+            text-align: center;
+        }
+
+        .price-info {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <h1>MaxiPizza</h1>
+            <p>¡Haz tu pedido fácilmente y disfruta de nuestras deliciosas pizzas, empanadas y promociones!</p>
+
+            <form>
+                <div class="form-group">
+                    <label for="nombre">Nombre del Cliente *</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Teléfono *</label>
+                    <input type="tel" id="telefono" name="telefono" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccion">Dirección *</label>
+                    <input type="text" id="direccion" name="direccion" required>
+                </div>
+
+                <h2>Pizzas</h2>
+                <div class="add-button">
+                    <img src="add_icon.png" alt="Agregar Pizza">
+                </div>
+
+                <h3>Fainá</h3>
+                <div class="form-group inline-group">
+                    <label for="porciones_faina">Porciones de Fainá</label>
+                    <input type="number" id="porciones_faina" name="porciones_faina" value="2">
+                    <span class="price-info">Precio por porción: $600</span>
+                </div>
+
+                <h2>Empanadas</h2>
+                <div class="add-button">
+                    <img src="add_icon.png" alt="Agregar Empanada">
+                </div>
+
+                <h2>Promociones</h2>
+                </form>
+        </div>
+        <div class="empty-right-section">
+            </div>
+    </div>
+</body>
+</html>

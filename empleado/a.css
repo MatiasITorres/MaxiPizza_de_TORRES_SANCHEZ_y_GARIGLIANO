@@ -1,0 +1,856 @@
+/* ========================================================= */
+/* VARIABLES Y RESET (Base del diseño MaxiPizza)             */
+/* ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lobster&family=Open+Sans:wght@400;600;700&display=swap');
+
+:root {
+    --primary-color: #c0392b; /* MaxiPizza Red - Botones, encabezados */
+    --secondary-color: #e67e22; /* MaxiPizza Orange/Brown - Acentos */
+    --tertiary-color: #f39c12; /* MaxiPizza Yellow/Gold */
+
+    --text-color: #343a40; 
+    --light-text: #adb5bd;
+    --background-color: #f4f6f9; /* Fondo general más suave */
+    --card-background: #ffffff;
+    --border-color: #e9ecef;
+    --success-color: #27ae60; 
+    --error-color: #e74c3c;
+
+    /* Encabezado/Navegación */
+    --header-bg: var(--card-background);
+    --header-text: var(--text-color);
+    --header-border: var(--border-color);
+
+    /* Estados de pedido */
+    --status-pendiente: #f39c12; /* Naranja */
+    --status-en_preparacion: #3498db; /* Azul */
+    --status-listo: #27ae60; /* Verde */
+    --status-entregado: #7f8c8d; /* Gris */
+    --status-cancelado: #e74c3c; /* Rojo */
+
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ========================================================= */
+/* DARK MODE */
+/* ========================================================= */
+.dark-mode {
+    --text-color: #ecf0f1;
+    --light-text: #95a5a6;
+    --background-color: #2c3e50; /* Fondo general oscuro */
+    --card-background: #34495e; /* Fondo de tarjetas oscuro */
+    --border-color: #44586d;
+    --header-bg: #34495e;
+    --header-text: #ecf0f1;
+    --header-border: #44586d;
+}
+
+/* Base de Dark Mode */
+.dark-mode body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+.dark-mode .card, .dark-mode .modal-content {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.dark-mode input[type="text"], 
+.dark-mode input[type="tel"], 
+.dark-mode textarea, 
+.dark-mode select {
+    background-color: #44586d;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+.dark-mode .modal-content h3 {
+    border-bottom: 1px solid var(--border-color);
+}
+.dark-mode .cart-total {
+    border-top: 1px solid var(--border-color);
+}
+.dark-mode .product-item {
+    border-bottom: 1px dashed var(--border-color);
+}
+.dark-mode .order-card {
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* ========================================================= */
+/* RESET GENERAL */
+/* ========================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* ========================================================= */
+/* ESTILOS DE CABECERA (HEADER) */
+/* ========================================================= */
+.main-header {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    padding: 10px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--header-border);
+    position: sticky;
+    top: 0;
+    z-index: 500;
+}
+
+.main-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.main-header .header-logo {
+    height: 40px; /* Tamaño del logo */
+}
+
+.main-header .logo-tag {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.header-nav ul {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.header-nav a {
+    color: var(--header-text);
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.header-nav a:hover, .header-nav a.active {
+    color: white;
+    background-color: var(--primary-color);
+}
+
+.user-profile, .logout-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.user-profile i {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+.dark-mode .user-profile i {
+    color: var(--light-text);
+}
+
+
+/* ========================================================= */
+/* UTILITIES Y ALERTAS */
+/* ========================================================= */
+
+.alert {
+    padding: 10px 20px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: var(--success-color);
+    border-color: #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: var(--error-color);
+    border-color: #f5c6cb;
+}
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-color: #bee5eb;
+}
+
+.dark-mode .alert-success {
+    background-color: #274727; 
+    color: var(--success-color);
+    border-color: #385738;
+}
+
+.dark-mode .alert-error {
+    background-color: #442222; 
+    color: var(--error-color);
+    border-color: #553333;
+}
+.dark-mode .alert-info {
+    background-color: #334455;
+    color: #5bc0de;
+    border-color: #4a5c6d;
+}
+
+.status-message-container {
+    position: fixed;
+    top: 60px; /* Debajo del header */
+    right: 20px;
+    width: 300px;
+    z-index: 1000;
+}
+
+
+/* ========================================================= */
+/* ESTILOS DE BOTONES */
+/* ========================================================= */
+.btn {
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s, opacity 0.3s;
+    border: none;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #a73023; /* Tono más oscuro */
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+.btn-success:hover {
+    background-color: #219d52; 
+}
+
+.btn-delete {
+    background-color: var(--error-color);
+    color: white;
+}
+.btn-delete:hover {
+    background-color: #d13f32; 
+}
+
+.btn-warning {
+    background-color: var(--secondary-color);
+    color: white;
+}
+.btn-warning:hover {
+    background-color: #d36e1c;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+
+/* ========================================================= */
+/* ESTRUCTURA DEL DASHBOARD DE EMPLEADO */
+/* ========================================================= */
+.employee-dashboard-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Pedido (2/3) | Órdenes (1/3) */
+    gap: 30px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--text-color);
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--border-color);
+}
+.section-title i {
+    color: var(--primary-color);
+    margin-right: 10px;
+}
+
+.card {
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+input[type="text"], 
+input[type="tel"], 
+textarea, 
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+textarea {
+    resize: vertical;
+}
+
+
+/* --- SECCIÓN MENÚ --- */
+.category-section h4 {
+    color: var(--secondary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin: 20px 0 10px 0;
+    font-size: 1.1rem;
+}
+
+.product-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.product-info {
+    flex-grow: 1;
+}
+
+.product-name {
+    font-weight: 500;
+    margin-right: 15px;
+}
+
+.product-price {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.btn-add-to-cart {
+    background-color: var(--success-color);
+    color: white;
+    padding: 5px 10px;
+    font-size: 0.9rem;
+}
+
+/* --- SECCIÓN CARRITO --- */
+.cart-card {
+    position: sticky;
+    top: 80px; /* Fija el carrito al hacer scroll */
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.cart-item:last-of-type {
+    border-bottom: none;
+}
+
+.item-info {
+    flex-grow: 1;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-qty {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+.item-price {
+    font-weight: 600;
+}
+
+.cart-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 20px 0 15px 0;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-full {
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* --- SECCIÓN PEDIDOS --- */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background-color: var(--card-background);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid;
+}
+
+.order-card.status-pendiente { border-left-color: var(--status-pendiente); }
+.order-card.status-en_preparacion { border-left-color: var(--status-en_preparacion); }
+.order-card.status-listo { border-left-color: var(--status-listo); }
+.order-card.status-entregado { border-left-color: var(--status-entregado); }
+.order-card.status-cancelado { border-left-color: var(--status-cancelado); }
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 5px;
+}
+
+.order-id { color: var(--primary-color); }
+.order-time { color: var(--light-text); font-size: 0.8rem; }
+
+.order-body p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+.order-body i {
+    color: var(--secondary-color);
+    margin-right: 5px;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.order-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.status-update-controls {
+    display: flex;
+    gap: 5px;
+}
+.status-selector {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* ========================================================= */
+/* MODAL (Para seleccionar modificaciones de producto)         */
+/* ========================================================= */
+.modal {
+    background-color: rgba(0,0,0,0.5); 
+    position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%;
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    position: relative;
+    color: var(--text-color);
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--light-text);
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: var(--error-color);
+}
+
+.modification-item {
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.modification-item label {
+    flex-grow: 1;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+/* ========================================================= */
+/* ESTILOS DEL INTERRUPTOR (Toggle) DE MODO OSCURO           */
+/* ========================================================= */
+
+/* Transiciones para un cambio de modo suave */
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+.card {
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+/* Posicionamiento del interruptor (si no está dentro del main-header) */
+.main-header-extra {
+    position: absolute;
+    top: 15px; /* Ajuste para el padding del header */
+    right: 30px; /* Ajuste para el padding del header */
+    z-index: 600; /* Asegurar que esté sobre el header */
+}
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 45px;
+    height: 25px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 17px;
+    width: 17px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color); /* Color de acento para modo oscuro activado */
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(20px);
+    -ms-transform: translateX(20px);
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+/* ================================================= */
+/* 0. VARIABLES Y MODOS (Si no están ya en config)  */
+/* ================================================= */
+:root {
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --background-light: #f4f4f9;
+    --text-light: #333;
+    --card-bg-light: #ffffff;
+}
+
+.light-mode {
+    background-color: var(--background-light);
+    color: var(--text-light);
+}
+
+.dark-mode {
+    --primary-color: #4a90e2; /* Azul más claro para dark mode */
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --info-color: #3498db;
+    background-color: #222222;
+    color: #f4f4f4;
+    --card-bg-light: #333333; /* Fondo de tarjeta más oscuro */
+}
+
+/* ================================================= */
+/* 1. LAYOUT PRINCIPAL Y GENERAL                      */
+/* ================================================= */
+
+#app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px; /* Ancho fijo para el menú */
+    /* ... otros estilos del menú ... */
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.page-header {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--text-light, #ccc); /* Adaptable al modo */
+}
+
+.dark-mode .page-header {
+    border-bottom: 1px solid #555;
+}
+
+/* ================================================= */
+/* 2. PESTAÑAS (TABS)                                */
+/* ================================================= */
+.tabs-container {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid #ddd;
+}
+
+.dark-mode .tabs-container {
+    border-bottom: 2px solid #444;
+}
+
+.tab-button {
+    padding: 12px 20px;
+    border: none;
+    background-color: #eee;
+    color: var(--text-light);
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    transition: background-color 0.2s, color 0.2s;
+    display: flex; /* Para alinear el badge */
+    align-items: center;
+}
+
+.dark-mode .tab-button {
+    background-color: #444;
+    color: #fff;
+}
+
+.tab-button:hover {
+    background-color: #ccc;
+}
+
+.tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.dark-mode .tab-button.active {
+    background-color: var(--primary-color);
+}
+
+.tab-content {
+    padding: 20px 0;
+}
+
+/* ================================================= */
+/* 3. LISTA Y TARJETAS DE PEDIDOS                    */
+/* ================================================= */
+
+.orders-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background-color: var(--card-bg-light);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 5px solid var(--primary-color); /* Borde por defecto */
+}
+
+.dark-mode .order-card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.dark-mode .order-header {
+    border-bottom: 1px dashed #555;
+}
+
+.order-details p {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.order-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.order-actions select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+    font-size: 0.9em;
+    flex-grow: 1;
+}
+
+.dark-mode .order-actions select {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #777;
+}
+
+/* ================================================= */
+/* 4. ESTILOS DE ESTADO Y PAGO (LO MÁS IMPORTANTE)   */
+/* ================================================= */
+
+/* BADGES (Insignias) */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.badge-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--warning-color);
+    color: #333;
+}
+
+/* ANIMACIÓN DE PULSO para Pedidos Pendientes de Pago (para resaltar) */
+.badge.pulse {
+    animation: pulse-warning 1.5s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+.orders-grid .order-card.status-pendiente_pago {
+    /* Un color amarillo/naranja se usa comúnmente para estados de pago pendiente */
+    border-left: 5px solid #ffc107; 
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5); /* Sutil brillo para llamar la atención */
+}

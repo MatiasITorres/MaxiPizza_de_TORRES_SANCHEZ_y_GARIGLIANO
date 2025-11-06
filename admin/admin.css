@@ -1,0 +1,210 @@
+/* style.css (Añadir al final del archivo) */
+
+/* ========================================================= */
+/* ESTILOS DE AUDITORÍA (LOG DE CAMBIOS)                     */
+/* ========================================================= */
+
+.log-table th:nth-child(3), 
+.log-table td:nth-child(3) { /* Columna de Acción */
+    text-align: center;
+    width: 100px;
+}
+.log-table th:nth-child(5), 
+.log-table td:nth-child(5) { /* Columna de ID Entidad */
+    width: 80px;
+    text-align: center;
+}
+
+/* Status Badges para las acciones de Log (Reutilizando colores de estado) */
+.status-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8em;
+    display: inline-block;
+    color: white; 
+    white-space: nowrap; /* Evita que el badge se rompa */
+}
+
+.status-badge.status-listo { /* INSERT */
+    background-color: var(--status-listo); /* Verde */
+}
+
+.status-badge.status-en_preparacion { /* UPDATE */
+    background-color: var(--status-en_preparacion); /* Azul */
+}
+
+.status-badge.status-cancelado { /* DELETE */
+    background-color: var(--status-cancelado); /* Rojo */
+}
+
+.status-badge.status-entregado { /* LOGIN/DEFAULT */
+    background-color: var(--secondary-color); /* Gris */
+}
+
+/* Media Query para el Log Table en móviles */
+@media (max-width: 768px) {
+    .log-table td:before {
+        /* Etiquetas para la vista móvil */
+        content: attr(data-label);
+        float: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-right: 10px;
+        color: var(--text-color); /* Usar color de texto principal */
+    }
+    
+    .log-table td:nth-of-type(1):before { content: "Fecha:"; }
+    .log-table td:nth-of-type(2):before { content: "Usuario:"; }
+    .log-table td:nth-of-type(3):before { content: "Acción:"; }
+    .log-table td:nth-of-type(4):before { content: "Entidad:"; }
+    .log-table td:nth-of-type(5):before { content: "ID:"; }
+    .log-table td:nth-of-type(6):before { content: "Detalle:"; }
+    
+    .log-table td {
+        text-align: right !important; 
+        padding-left: 50%; 
+        position: relative;
+    }
+}
+/* =================================================== */
+/* ESTILOS PARA MODO OSCURO PURO (BLACK)   */
+/* =================================================== */
+
+body.black-mode {
+    /* Fondo principal: Negro puro */
+    background-color: #000000;
+    color: #f0f0f0; /* Texto principal: Blanco suave */
+}
+
+/* Contenedor principal y contenido */
+body.black-mode .wrapper {
+    background-color: #000000;
+}
+
+body.black-mode .main-content-wrapper {
+    background-color: #111111; /* Contenido ligeramente gris */
+}
+
+/* Sidebar y navegación */
+body.black-mode .sidebar {
+    background-color: #000000;
+    border-right: 1px solid #333333;
+    color: #cccccc;
+}
+
+body.black-mode .sidebar-header {
+    background-color: #000000;
+    border-bottom: 1px solid #333333;
+}
+
+body.black-mode .sidebar-nav .nav-item a {
+    color: #cccccc;
+}
+
+body.black-mode .sidebar-nav .nav-item a:hover {
+    background-color: #222222;
+    color: #ffffff;
+}
+
+body.black-mode .sidebar-nav .nav-item.active a {
+    background-color: #333333;
+    color: #ffffff;
+    border-left-color: var(--color-primary);
+}
+
+/* Cards y elementos con sombra */
+body.black-mode .card {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333333;
+}
+
+/* Tablas */
+body.black-mode .data-table thead {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+body.black-mode .data-table th,
+body.black-mode .data-table td {
+    border-color: #333333;
+}
+
+body.black-mode .data-table tbody tr:nth-child(even) {
+    background-color: #222222;
+}
+
+body.black-mode .data-table tbody tr:nth-child(odd) {
+    background-color: #1a1a1a;
+}
+
+/* Formularios */
+body.black-mode .form-control,
+body.black-mode .form-control-file {
+    background-color: #222222;
+    color: #f0f0f0;
+    border: 1px solid #444444;
+}
+
+body.black-mode .form-control:focus {
+    background-color: #333333;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(68, 182, 174, 0.25); /* Color primario más sutil */
+}
+
+/* Alertas */
+body.black-mode .alert {
+    border: 1px solid #333333;
+}
+body.black-mode .alert-success {
+    background-color: #004400; /* Verde muy oscuro */
+    color: #ccffcc;
+}
+body.black-mode .alert-danger {
+    background-color: #550000; /* Rojo muy oscuro */
+    color: #ffcccc;
+}
+body.black-mode .alert-warning {
+    background-color: #554400; /* Amarillo muy oscuro */
+    color: #ffffcc;
+}
+body.black-mode .close-btn {
+    color: #f0f0f0;
+    opacity: 0.7;
+}
+
+/* Dropdowns */
+body.black-mode .dropdown-menu {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+
+body.black-mode .dropdown-item {
+    color: #cccccc;
+}
+
+body.black-mode .dropdown-item:hover {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+/* Indicadores de estado */
+body.black-mode .status-indicator.status-success {
+    background-color: #004400;
+    color: #ccffcc;
+    border-color: #006600;
+}
+body.black-mode .status-indicator.status-error {
+    background-color: #550000;
+    color: #ffcccc;
+    border-color: #770000;
+}
+
+/* Estilos de Log de Auditoría */
+body.black-mode .log-insert { background-color: #112211; } /* Fondo sutil para INSERT */
+body.black-mode .log-update { background-color: #1a1a1a; } /* Fondo neutro para UPDATE */
+body.black-mode .log-delete { background-color: #221111; } /* Fondo rojo oscuro para DELETE */
+body.black-mode .log-read { background-color: #111122; } /* Fondo azul oscuro para READ/EXPORT */

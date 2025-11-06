@@ -1,0 +1,10 @@
+{
+    "company_name": "MaxiPizza",
+    "logo_path": "./../img/logo/default_logo.png",
+    "contact_email": "contacto@maxipizza.com",
+    "theme_mode": "dark",
+    "mercadopago_active": "0",
+    "other_payment_options": "",
+    "transfer_alias": "",
+    "transfer_cbu_cvu": ""
+}

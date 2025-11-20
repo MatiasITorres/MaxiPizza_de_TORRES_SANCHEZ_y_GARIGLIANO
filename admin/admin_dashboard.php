@@ -1,7 +1,5 @@
 <?php
-// admin_dashboard.php - CONSOLIDADO (TODO en un solo archivo)
-// **MODIFICADO PARA USAR '∞' COMO INDICADOR DE STOCK ILIMITADO EN LA BASE DE DATOS**
-// **CORREGIDO: ERROR DE 'email_usuario' EN log_change**
+// admin_dashboard.php - CÓDIGO ORIGINAL + FIX CAMPO 'ORDEN'
 
 session_start();
 // Se asume que config.php contiene las constantes de conexión (DB_HOST, DB_USER, etc.)
@@ -14,25 +12,22 @@ if ($conn->connect_error) {
 }
 
 // 1. VERIFICACIÓN DE SESIÓN Y ROLES
-$allowed_roles = ['administrador', 'empleado']; 
+$allowed_roles = ['administrador', 'empleado', 'cocinero']; 
 if (!isset($_SESSION['usuario_rol']) || !in_array($_SESSION['usuario_rol'], $allowed_roles)) {
     header("Location: ./../index.php");
     exit();
 }
 
-// **INICIO: Lógica de cierre de sesión (MOVIDA)**
-// Lógica de cierre de sesión por GET (Movida aquí para evitar error de headers)
+// Lógica de cierre de sesión por GET
 if (isset($_GET['logout']) && $_GET['logout'] === 'true') {
     session_destroy();
     header("Location: ./../index.php");
     exit();
 }
-// **FIN: Lógica de cierre de sesión**
-
 
 // Obtener el rol, ID y EMAIL del usuario actual
 $current_user_rol = $_SESSION['usuario_rol'] ?? 'invitado';
-$current_user_email = $_SESSION['usuario_email'] ?? null; // MODIFICADO: Se obtiene el email de la sesión
+$current_user_email = $_SESSION['usuario_email'] ?? null;
 $current_user_id = null;
 if (isset($_SESSION['usuario_email'])) {
     $stmt_user_id = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
@@ -48,7 +43,7 @@ if (isset($_SESSION['usuario_email'])) {
 
 // Obtener la sección actual y el modo de operación (CRUD)
 $current_section = $_GET['section'] ?? 'overview';
-$action = $_GET['action'] ?? null;
+$action = $_GET['action'] ?? ''; 
 $item_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 // 2. LECTURA DE CONFIGURACIÓN (PARA HEADER Y SETTINGS)
@@ -72,7 +67,7 @@ if (file_exists($config_file)) {
 }
 $current_theme_mode = $config['theme_mode'] ?? 'light';
 
-// 3. FUNCIÓN DE UTILIDAD PARA FORMATO DE STOCK (MODIFICADA)
+// 3. FUNCIÓN DE UTILIDAD PARA FORMATO DE STOCK
 function format_stock($stock) {
     if ($stock === '∞') {
         return '∞ Ilimitado';
@@ -81,21 +76,29 @@ function format_stock($stock) {
     return number_format($stock_num, 0, '', '.');
 }
 
-// 4. LÓGICA DE AUDITORÍA (Función para registrar cambios)
-// MODIFICADO: Se añadió $user_email como cuarto parámetro para corregir el error de BD.
+// 4. LÓGICA DE AUDITORÍA (REPARADA)
 function log_change($conn, $user_id, $user_rol, $user_email, $action_type, $entity_type, $entity_id, $description) {
     // Si el usuario no es admin ni empleado, o si no hay ID de usuario, no registrar.
     if (!in_array($user_rol, ['administrador', 'empleado']) || empty($user_id)) {
         return;
     }
 
-    // MODIFICADO: Se añade 'email_usuario' a la consulta INSERT.
     $stmt = $conn->prepare("INSERT INTO registro_cambios (usuario_id, user_rol, email_usuario, action_type, entity_type, entity_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    
     if ($stmt) {
-        // MODIFICADO: Se añade 's' para el email en bind_param.
-        // Tipos: i (ID), s (ROL), s (EMAIL), s (ACTION), s (ENTITY), i (ID), s (DESC)
-        $stmt->bind_param("issss_is", $user_id, $user_rol, $user_email, $action_type, $entity_type, $entity_id, $description);
-        $stmt->execute(); // Esta es la línea 99 que fallaba.
+        // FIX: Usamos bind_param directamente para evitar el error de referencia en PHP 8+
+        // Tipos: i=int, s=string (issssis)
+        $stmt->bind_param("issssis", 
+            $user_id, 
+            $user_rol, 
+            $user_email, 
+            $action_type, 
+            $entity_type, 
+            $entity_id, 
+            $description
+        );
+        
+        $stmt->execute();
         $stmt->close();
     }
 }
@@ -106,7 +109,7 @@ if ($current_section === 'reports' && $action === 'export_orders') {
         header("Location: admin_dashboard.php?section=reports&message=" . urlencode("Error: Permiso denegado para exportar datos."));
         exit();
     }
-
+    
     $query = "SELECT p.id, p.fecha_pedido, p.total, p.estado, c.nombre AS cliente_nombre, c.email AS cliente_email, p.ubicacion, p.tipo 
               FROM pedidos p 
               LEFT JOIN clientes c ON p.cliente_id = c.id
@@ -119,17 +122,14 @@ if ($current_section === 'reports' && $action === 'export_orders') {
         header('Content-Disposition: attachment; filename=' . $filename);
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['ID Pedido', 'fecha_pedido', 'Total', 'Estado', 'Cliente', 'Email Cliente', 'Ubicacion', 'Tipo']);
+        fputcsv($output, ['ID Pedido', 'fecha_pedido', 'Total', 'Estado', 'Cliente', 'Email Cliente', 'Ubicacion', 'Tipo'], ',', '"');
         
         while ($row = $result->fetch_assoc()) {
-            fputcsv($output, $row);
+            fputcsv($output, $row, ',', '"');
         }
 
         fclose($output);
-        
-        // MODIFICADO: Se añade $current_user_email a la llamada de log_change
         log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'READ', 'PEDIDOS', 0, 'Exportación masiva de pedidos a CSV.');
-        
         exit();
     } else {
         header("Location: admin_dashboard.php?section=reports&message=" . urlencode("Advertencia: No hay pedidos para exportar."));
@@ -142,12 +142,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $entity_type = $_POST['entity_type'] ?? '';
     $action_type = $_POST['action_type'] ?? '';
 
-    // Lógica de subida de imagen (productos, categorías, logo...)
-    // ... (Mantenido sin cambios)
+    // Lógica de subida de imagen
+    $img_path = ''; 
+    $upload_dir = './../img/uploads/'; 
+
+    if (isset($_FILES['img_path']) && $_FILES['img_path']['error'] === UPLOAD_ERR_OK) {
+        $file_tmp = $_FILES['img_path']['tmp_name'];
+        $file_name = basename($_FILES['img_path']['name']);
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+        $unique_name = uniqid('img_', true) . '.' . $file_ext;
+        $destination = $upload_dir . $unique_name;
+
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+
+        if (move_uploaded_file($file_tmp, $destination)) {
+            $img_path = './../img/uploads/' . $unique_name;
+        } else {
+            $message = "Error al subir la imagen.";
+            if ($action_type !== 'edit' && $entity_type !== 'settings') {
+                 // ...
+            } else if ($entity_type === 'settings') {
+                $img_path = $config['logo_path']; 
+            }
+        }
+    } else if ($action_type === 'edit') {
+        if ($entity_type === 'product' && isset($_POST['current_image'])) {
+            $img_path = $_POST['current_image'];
+        } elseif ($entity_type === 'category' && isset($_POST['current_category_image'])) {
+            $img_path = $_POST['current_category_image'];
+        } elseif ($entity_type === 'settings') {
+            $img_path = $config['logo_path'];
+        }
+    }
+
+    $category_img_path = $img_path; 
 
     switch ($entity_type) {
         case 'user':
-            // Lógica CRUD de Usuarios 
+            // CRUD Usuarios 
             if ($action_type === 'create') {
                 $nombre = $_POST['nombre'];
                 $email = $_POST['email'];
@@ -166,7 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("ssss", $nombre, $email, $password_hash, $rol);
                 if ($stmt->execute()) {
                     $message = "Usuario creado exitosamente.";
-                    // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                     log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'INSERT', 'USUARIO', $conn->insert_id, "Nuevo usuario ($rol): $nombre.");
                 } else {
                     $message = "Error al crear usuario: " . $stmt->error;
@@ -199,10 +232,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $stmt = $conn->prepare($sql);
+                // Aquí es seguro usar el spread operator (...) en versiones modernas, pero si fallara, se puede hacer manual.
                 $stmt->bind_param($types, ...$params);
                 if ($stmt->execute()) {
                     $message = "Usuario actualizado exitosamente.";
-                    // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                     log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'UPDATE', 'USUARIO', $id, "Usuario editado: $nombre.");
                 } else {
                     $message = "Error al actualizar usuario: " . $stmt->error;
@@ -212,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'product':
-            // Lógica CRUD de Productos (Contiene el FIX de 'orden' y 'stock')
+            // CRUD Productos
             $nombre = $_POST['nombre'];
             $descripcion = $_POST['descripcion'];
             $precio = floatval($_POST['precio']);
@@ -220,7 +253,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $disponible = isset($_POST['disponible']) ? 1 : 0;
             $stock_ingresado = trim($_POST['stock'] ?? ''); 
             
-            // Lógica de Stock
             if ($stock_ingresado === '') {
                 $stock_for_db = '∞';
             } elseif (is_numeric($stock_ingresado)) {
@@ -228,17 +260,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $stock_for_db = '0'; 
             }
-            // FIX de 'orden'
-            $default_orden = 0;
 
             if ($action_type === 'create') {
+                // --- [SOLUCIÓN APLICADA AQUÍ] ---
+                // Agregamos la columna 'orden' con valor 0 para evitar el error: Field 'orden' doesn't have a default value
+                $orden_default = 0;
+                
                 $stmt = $conn->prepare("INSERT INTO productos (nombre, descripcion, precio, categoria_id, img_path, disponible, stock, orden) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 
                 if ($stmt) {
-                    $stmt->bind_param("sdsisisi", $nombre, $descripcion, $precio, $categoria_id, $img_path, $disponible, $stock_for_db, $default_orden);
+                    // 'ssdisisi' -> el ultimo 'i' es para $orden_default
+                    $stmt->bind_param("ssdisisi", $nombre, $descripcion, $precio, $categoria_id, $img_path, $disponible, $stock_for_db, $orden_default); 
                     if ($stmt->execute()) {
                         $message = "Producto creado exitosamente.";
-                        // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                         log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'INSERT', 'PRODUCTO', $conn->insert_id, "Nuevo producto: $nombre. Stock: " . format_stock($stock_for_db));
                     } else {
                         $message = "Error al crear producto: " . $stmt->error;
@@ -251,10 +285,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, categoria_id = ?, img_path = ?, disponible = ?, stock = ? WHERE id = ?");
                 
                 if ($stmt) {
-                    $stmt->bind_param("sdsisisi", $nombre, $descripcion, $precio, $categoria_id, $img_path, $disponible, $stock_for_db, $id);
+                    $stmt->bind_param("ssdisisi", $nombre, $descripcion, $precio, $categoria_id, $img_path, $disponible, $stock_for_db, $id); 
                     if ($stmt->execute()) {
                         $message = "Producto actualizado exitosamente.";
-                        // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                         log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'UPDATE', 'PRODUCTO', $id, "Producto editado: $nombre. Stock: " . format_stock($stock_for_db));
                     } else {
                         $message = "Error al actualizar producto: " . $stmt->error;
@@ -265,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'category':
-            // Lógica CRUD de Categorías
+            // CRUD Categorías
             $nombre = $_POST['nombre'];
             $descripcion = $_POST['descripcion'];
 
@@ -274,7 +307,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("sss", $nombre, $descripcion, $category_img_path);
                 if ($stmt->execute()) {
                     $message = "Categoría creada exitosamente.";
-                    // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                     log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'INSERT', 'CATEGORIA', $conn->insert_id, "Nueva categoría: $nombre.");
                 } else {
                     $message = "Error al crear categoría: " . $stmt->error;
@@ -286,7 +318,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("sssi", $nombre, $descripcion, $category_img_path, $id);
                 if ($stmt->execute()) {
                     $message = "Categoría actualizada exitosamente.";
-                    // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                     log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'UPDATE', 'CATEGORIA', $id, "Categoría editada: $nombre.");
                 } else {
                     $message = "Error al actualizar categoría: " . $stmt->error;
@@ -296,17 +327,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
             
         case 'settings':
-            // Lógica de Configuración (JSON)
-            // ...
+            // CRUD Config
+            $new_config = $config; 
+            
+            $new_config['company_name'] = $_POST['company_name'] ?? $new_config['company_name'];
+            $new_config['contact_email'] = $_POST['contact_email'] ?? $new_config['contact_email'];
+            $new_config['theme_mode'] = $_POST['theme_mode'] ?? $new_config['theme_mode'];
+            $new_config['mercadopago_active'] = $_POST['mercadopago_active'] ?? '0';
+            $new_config['other_payment_options'] = $_POST['other_payment_options'] ?? $new_config['other_payment_options'];
+            $new_config['transfer_alias'] = $_POST['transfer_alias'] ?? $new_config['transfer_alias'];
+            $new_config['transfer_cbu_cvu'] = $_POST['transfer_cbu_cvu'] ?? $new_config['transfer_cbu_cvu'];
+
+            if (!empty($img_path)) {
+                $new_config['logo_path'] = $img_path;
+            }
+            
+            $json_content = json_encode($new_config, JSON_PRETTY_PRINT);
+            
             if (file_put_contents($config_file, $json_content) !== false) {
                 $message = "Configuración guardada exitosamente. El cambio de tema se aplicará al recargar.";
-                $current_theme_mode = $config['theme_mode'];
-                // MODIFICADO: Se añade $current_user_email a la llamada de log_change
+                $current_theme_mode = $new_config['theme_mode'];
                 log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'UPDATE', 'CONFIG', 1, 'Configuración del sistema actualizada.');
             } else {
                 $message = "Error al guardar la configuración. Verifique los permisos de escritura para el archivo config_data.json.";
             }
-            // ...
             break;
             
         default:
@@ -335,7 +379,6 @@ if ($action === 'delete' && $item_id > 0) {
             $stmt->bind_param("i", $item_id);
             if ($stmt->execute()) {
                 $message = "Usuario eliminado exitosamente.";
-                // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                 log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'DELETE', 'USUARIO', $item_id, 'Usuario eliminado (ID: ' . $item_id . ').');
             } else {
                 $message = "Error al eliminar usuario: " . $stmt->error;
@@ -344,14 +387,21 @@ if ($action === 'delete' && $item_id > 0) {
             break;
             
         case 'product':
-            // ... (Lógica de eliminación de producto y archivo de imagen)
+            $img_query = $conn->prepare("SELECT img_path FROM productos WHERE id = ?");
+            $img_query->bind_param("i", $item_id);
+            $img_query->execute();
+            $img_result = $img_query->get_result();
+            $img_path_to_delete = $img_result->fetch_assoc()['img_path'] ?? null;
+            $img_query->close();
+            
             $stmt = $conn->prepare("DELETE FROM productos WHERE id = ?");
             $stmt->bind_param("i", $item_id);
             if ($stmt->execute()) {
                 $message = "Producto eliminado exitosamente.";
-                // MODIFICADO: Se añade $current_user_email a la llamada de log_change
+                if (!empty($img_path_to_delete) && file_exists($img_path_to_delete) && $img_path_to_delete !== './../img/default_product.png') {
+                    unlink($img_path_to_delete);
+                }
                 log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'DELETE', 'PRODUCTO', $item_id, 'Producto eliminado (ID: ' . $item_id . ').');
-                // ... (unlink)
             } else {
                 $message = "Error al eliminar producto: " . $stmt->error;
             }
@@ -359,14 +409,21 @@ if ($action === 'delete' && $item_id > 0) {
             break;
             
         case 'category':
-            // ... (Lógica de eliminación de categoría y archivo de imagen)
+            $img_query = $conn->prepare("SELECT img_path FROM categorias_productos WHERE id = ?");
+            $img_query->bind_param("i", $item_id);
+            $img_query->execute();
+            $img_result = $img_query->get_result();
+            $img_path_to_delete = $img_result->fetch_assoc()['img_path'] ?? null;
+            $img_query->close();
+            
             $stmt = $conn->prepare("DELETE FROM categorias_productos WHERE id = ?");
             $stmt->bind_param("i", $item_id);
             if ($stmt->execute()) {
                 $message = "Categoría eliminada exitosamente.";
-                // MODIFICADO: Se añade $current_user_email a la llamada de log_change
+                if (!empty($img_path_to_delete) && file_exists($img_path_to_delete) && $img_path_to_delete !== './../img/default_category.png') {
+                    unlink($img_path_to_delete);
+                }
                 log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'DELETE', 'CATEGORIA', $item_id, 'Categoría eliminada (ID: ' . $item_id . ').');
-                // ... (unlink)
             } else {
                 $message = "Error al eliminar categoría: " . $stmt->error;
             }
@@ -392,7 +449,6 @@ if ($current_section === 'orders' && $action === 'update_status' && $item_id > 0
             $stmt->bind_param("si", $new_status, $item_id);
             if ($stmt->execute()) {
                 $message = "Estado del pedido #{$item_id} actualizado a: " . ucfirst($new_status) . ".";
-                // MODIFICADO: Se añade $current_user_email a la llamada de log_change
                 log_change($conn, $current_user_id, $current_user_rol, $current_user_email, 'UPDATE', 'PEDIDO', $item_id, "Estado actualizado a: $new_status.");
             } else {
                 $message = "Error al actualizar estado: " . $stmt->error;
@@ -408,12 +464,7 @@ if ($current_section === 'orders' && $action === 'update_status' && $item_id > 0
     exit();
 }
 
-// 8. HTML Y VISTAS (SIN CAMBIOS ESTRUCTURALES)
-
-// ... (Resto del código HTML y Lógica de Vistas)
-
 // 8. HTML Y VISTAS
-// Función para obtener el estado del servidor XAMPP (Simplificada)
 function get_xampp_status() {
     $status = ['apache' => 'success', 'mysql' => 'success'];
     global $conn;
@@ -436,7 +487,7 @@ function get_xampp_status() {
         .filter-bar {
             padding: 15px;
             margin-bottom: 20px;
-            background-color: var(--card-bg); /* Usa el fondo de la tarjeta para consistencia */
+            background-color: var(--card-bg); 
             border-radius: 8px;
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--border-color);
@@ -511,7 +562,7 @@ function get_xampp_status() {
         <main class="main-content-wrapper">
             <?php switch ($current_section) {
                 case 'overview':
-                    // Contenido del Dashboard principal (sin cambios)
+                    // Contenido del Dashboard principal
                     $status = get_xampp_status();
                     $total_pedidos = $conn->query("SELECT COUNT(*) as total FROM pedidos")->fetch_assoc()['total'] ?? 0;
                     $total_productos = $conn->query("SELECT COUNT(*) as total FROM productos")->fetch_assoc()['total'] ?? 0;
@@ -750,7 +801,7 @@ function get_xampp_status() {
                                     <option value="panel" <?php echo ($filter_rol === 'panel') ? 'selected' : ''; ?>>Panel</option>
                                 </select>
                             </div>
-                            <a href="admin_dashboard.php?section=users" class="btn btn-secondary">Limpiar Filtro</a>
+                            <a href="admin_dashboard.php?section=users" class="btn btn-secondary">Cancelar Filtro</a>
                         </form>
                     </div>
 
@@ -1121,6 +1172,7 @@ function get_xampp_status() {
                                             <th>$<?php echo number_format($ingreso_total_historico, 2, ',', '.'); ?></th>
                                         </tr>
                                     </tfoot>
+                                
                                 </table>
                             </div>
                         <?php else: ?>
@@ -1219,7 +1271,7 @@ function get_xampp_status() {
                                     
                                     <div class="form-group">
                                         <label for="logo_path">Logo de la Compañía</label>
-                                        <input type="file" id="logo_path" name="logo_path" class="form-control-file" accept="image/*">
+                                        <input type="file" id="logo_path" name="img_path" class="form-control-file" accept="image/*">
                                         <small class="form-text text-muted">Logo actual: <a href="<?php echo htmlspecialchars($config['logo_path']); ?>" target="_blank">Ver logo</a></small>
                                     </div>
 
@@ -1234,6 +1286,7 @@ function get_xampp_status() {
                                 <form action="admin_dashboard.php?section=settings" method="POST">
                                     <input type="hidden" name="entity_type" value="settings">
                                     <input type="hidden" name="action_type" value="update">
+                                    
                                     <input type="hidden" name="company_name" value="<?php echo htmlspecialchars($config['company_name']); ?>">
                                     <input type="hidden" name="contact_email" value="<?php echo htmlspecialchars($config['contact_email']); ?>">
                                     <input type="hidden" name="theme_mode" value="<?php echo htmlspecialchars($config['theme_mode']); ?>">

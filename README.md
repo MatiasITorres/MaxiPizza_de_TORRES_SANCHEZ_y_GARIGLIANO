@@ -36,9 +36,9 @@ Este proyecto fue desarrollado por estudiantes de 7mo Informática A y B del Ins
 
 | Recurso | Descripción | Enlace |
 | :--- | :--- | :--- |
-| **Web del Proyecto** | Landing page con información y demostración del producto. | **[LINK REAL AL WEBSITE DEL PROYECTO]** |
-| **Manual de Uso** | Guía detallada para la utilización de todos los módulos del software. | **[LINK REAL AL MANUAL DE USO (PDF/DOCX)]** |
-| **Documentación SRD** | Especificación de Requisitos y Contrato del Proyecto. | [LINK AL DOCUMENTO FINAL (OPCIONAL)] |
+| **Web del Proyecto** |  | **[]** |
+| **Manual de Uso** |  | **[]** |
+| **Documentación SRD** | ] |
 
 ***
 

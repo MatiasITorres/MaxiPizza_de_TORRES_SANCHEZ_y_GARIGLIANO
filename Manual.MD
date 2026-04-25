@@ -1,5 +1,11 @@
 # 🍕 Software de Gestión de Pedidos para Pizzería (SGPP)
+## 👥 Integrantes del Equipo
 
+*   **Ian Garigliano**
+*   **Matías Torres**
+*   **Tomás Sánchez**
+
+*(Instituto Leonardo Murialdo - 7mo Informática A y B)*
 ## 📜 Descripción General del Proyecto
 
 Este proyecto es un **Sistema de Gestión de Pedidos para Pizzería (SGPP)** completo, desarrollado en PHP y MySQL. Está diseñado para modernizar y digitalizar el flujo de trabajo completo de una pizzería, desde la toma de pedidos hasta la visualización en cocina y la gestión administrativa.

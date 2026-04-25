@@ -35,12 +35,12 @@ Este proyecto va más allá de un simple CRUD e implementa varias lógicas de ne
 
 | Categoría | Tecnología/Lenguaje | Uso Principal |
 | :--- | :--- | :--- |
-| **Backend** | `PHP 8.x` | Lógica de negocio, gestión de sesiones y API interna (AJAX). |
+| **Backend** | `PHP ` | Lógica de negocio, gestión de sesiones y API interna (AJAX). |
 | **Base de Datos** | `MySQL` / `MariaDB` | Almacenamiento de pedidos, productos, clientes, usuarios, etc. |
-| **Frontend** | `JavaScript (ES6+)` | Manejo de estado del carrito, lógica de modificaciones, peticiones AJAX (`fetch`). |
+| **Frontend** | `JavaScript` | Manejo de estado del carrito, lógica de modificaciones, peticiones AJAX (`fetch`). |
 | **Estilos** | `HTML5` / `CSS3` | Estructura y diseño de todos los paneles y dashboards. |
 | **Configuración** | `JSON` | Almacenamiento dinámico de la configuración del sistema (`config_data.json`). |
-| **Servidor Local** | `XAMPP` / `WAMP` | Entorno de desarrollo Apache + MySQL. |
+| **Servidor Local** | `XAMPP` | Entorno de desarrollo Apache + MySQL. |
 
 ## 📦 Guía de Instalación y Despliegue
 
@@ -100,17 +100,9 @@ Puedes usar las siguientes credenciales por defecto (creadas por `carta.sql`) pa
 | **Panel (Display)** | `panel@sgpp.com` | `Panel123!` | `/panel/panel_pedidos.php` |
 | **Cliente (Kiosco)**| `cliente@sgpp.com`| `Cliente123!` | `/cliente/cliente_dashboard.php` |
 
-## 👥 Integrantes del Equipo
-
-*   **Ian Garigliano**
-*   **Matías Torres**
-*   **Tomás Sánchez**
-
-*(Instituto Leonardo Murialdo - 7mo Informática A y B)*
 
 ## 🔗 Enlaces Importantes
 
 | Recurso | Enlace |
 | :--- | :--- |
-| **Web del Proyecto** | [LINK AL WEBSITE DEL PROYECTO (8.5)] |
-| **Manual de Uso** | [LINK AL MANUAL DE USO (8.3)] |
+| **Manual de Uso** | https://drive.google.com/file/d/1RBxkwH9WqhTo1mGLDCM5O_pMO_rfcmZ9/view?usp=sharing |
